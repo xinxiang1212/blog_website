@@ -1,11 +1,38 @@
-from datetime import datetime
+import os
 from flask import Flask, render_template, session, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
+from flask_sqlalchemy import SQLALCHEMY
+
+basedir = os.path.abspath(os.path.dirname(_file_))
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] =\
+    'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLALCHEMY(app)
+
+class Role(db.model)
+    _tablename_ = "roles"
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String(64), unique = True)
+    users = db.relationship('User', backref='role')
+
+    def _repr_(self):
+        return '<Role %r>' % self.name
+
+
+class User(db.model)
+    _tablename_ = "users"
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, index = True)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+
+    def _repr_(self):
+        return '<User %r>' % self.name
 
 bootstrap = Bootstrap(app)
 
