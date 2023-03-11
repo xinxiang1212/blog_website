@@ -1,7 +1,8 @@
-from . import db
+from . import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from . import login_manager
+from flask import current_app
+from itsdangerous import TimedSerializer as Serializer
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -24,6 +25,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    confirmed = db.Column(db.Boolean, default=False)
 
 
     @property
@@ -36,6 +38,22 @@ class User(UserMixin, db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def generate_confirmation_token(self, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], 'confirmation')
+        return s.dumps(self.id)
+
+    def confirm(self, token, max_age=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], 'confirmation')
+        try:
+            data = s.loads(token, max_age=max_age)
+        except:
+            return False
+        if data != self.id:
+            return False
+        self.confirmed = True
+        db.session.add(self)
+        return True
 
     def _repr_(self):
         return '<User %r>' % self.name
