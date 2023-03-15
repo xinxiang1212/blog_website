@@ -55,5 +55,32 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
+    def generate_reset_token(self, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], 'reset')
+        return s.dumps(self.id)
+
+    @staticmethod
+    def reset_password(token, new_password, max_age=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], 'reset')
+        try:
+            user_id = s.loads(token, max_age=max_age)
+            #import pdb;pdb.set_trace()
+        except:
+            return False
+        #user_id = data.get(str('reset'))
+        user = User.query.get(user_id)
+        db.session.add(user)
+        if user is None:
+            return False
+        user.password = new_password
+        db.session.add(user)
+        return True
+
+
     def _repr_(self):
-        return '<User %r>' % self.name
+        return '<User %r>' % self.username
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
