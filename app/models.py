@@ -49,7 +49,7 @@ class Role(db.Model):
                 role.add_permission(perm)
             role.default = (role.name == default_role)
             db.session.add(role)
-        dddb.session.commit()
+        db.session.commit()
 
     def add_permission(self, perm):
         if not self.has_permission(perm):
