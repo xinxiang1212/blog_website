@@ -35,3 +35,9 @@ def update_user_roles():
             db.session.add(user)
     db.session.commit()
     print('User roles have been updated!')
+
+
+# Overall, this code sets up the Flask application, configures the
+# database migration, provides a shell context,
+# and defines CLI commands for running tests and updating user roles.
+# It demonstrates the common tasks and functionality used in a Flask application.
